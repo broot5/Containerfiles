@@ -1,0 +1,33 @@
+FROM docker.io/library/alpine:3
+
+RUN apk update && \
+    apk add --no-cache \
+    python3 \
+    py3-pip \
+    ffmpeg \
+    gstreamer \
+    chromaprint && \
+    rm -rf /var/cache/apk/*
+
+RUN pip install --no-cache-dir --break-system-packages "beets[chroma,embedart,fetchart,lastgenre,lyrics,scrub]"; \
+    pip install --no-cache-dir --break-system-packages beets-filetote;
+
+ARG APP_USER=beetsuser
+ARG APP_GROUP=beetsgroup
+ARG APP_UID=1000
+ARG APP_GID=1000
+
+ENV BEETSDIR="/app/config"
+ENV HOME="${BEETSDIR}"
+
+RUN addgroup -g ${APP_GID} ${APP_GROUP}
+RUN adduser -u ${APP_UID} -G ${APP_GROUP} -s /bin/false -D ${APP_USER}
+
+WORKDIR /app
+
+RUN mkdir -p ${HOME} && \
+    chown -R ${APP_USER}:${APP_GROUP} ${HOME}
+
+USER ${APP_USER}
+
+CMD ["sleep", "infinity"]
