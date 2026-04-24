@@ -1,16 +1,16 @@
-FROM docker.io/library/alpine:3
+FROM docker.io/library/python:3-slim
 
-RUN apk update && \
-    apk add --no-cache \
-    python3 \
-    py3-pip \
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
     ffmpeg \
-    gstreamer \
-    chromaprint && \
-    rm -rf /var/cache/apk/*
+    gstreamer1.0-tools \
+    libchromaprint-tools \
+    && rm -rf /var/lib/apt/lists/*
 
-RUN pip install --no-cache-dir --break-system-packages "beets[chroma,embedart,fetchart,lastgenre,lyrics,scrub]"; \
-    pip install --no-cache-dir --break-system-packages beets-filetote;
+RUN pip install --no-cache-dir "beets[chroma,embedart,fetchart,lastgenre,lyrics,scrub]"; \
+    pip install --no-cache-dir beets-filetote;
 
 ARG APP_USER=beetsuser
 ARG APP_GROUP=beetsgroup
@@ -20,8 +20,8 @@ ARG APP_GID=1000
 ENV BEETSDIR="/app/config"
 ENV HOME="${BEETSDIR}"
 
-RUN addgroup -g ${APP_GID} ${APP_GROUP}
-RUN adduser -u ${APP_UID} -G ${APP_GROUP} -s /bin/false -D ${APP_USER}
+RUN groupadd -g ${APP_GID} ${APP_GROUP} && \
+    useradd -m -u ${APP_UID} -g ${APP_GROUP} -s /usr/sbin/nologin ${APP_USER}
 
 WORKDIR /app
 
